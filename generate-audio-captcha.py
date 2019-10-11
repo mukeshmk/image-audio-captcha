@@ -4,6 +4,8 @@ import random
 import argparse
 from gtts import gTTS
 
+file_format = '.mp3'
+
 
 def scramble_captcha_name(captcha_name):
     import hashlib
@@ -65,12 +67,12 @@ def main():
         captcha_name_scrambled = captcha_text
         if args.scramble:
             captcha_name_scrambled = scramble_captcha_name(captcha_text)
-        captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + '.mp3')
+        captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + file_format)
         if os.path.exists(captcha_file_name):
             version = 1
-            while os.path.exists(os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + '.mp3')):
+            while os.path.exists(os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + file_format)):
                 version += 1
-            captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + '.mp3')
+            captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + file_format)
 
         tts = gTTS(captcha_text, 'en')
         tts.save(captcha_file_name)
