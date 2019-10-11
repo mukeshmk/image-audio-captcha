@@ -57,7 +57,6 @@ def main():
         args.count = len(captcha_symbols)
         args.scramble = False
 
-    print(args.count)
     for i in range(args.count):
         if args.audio_dict:
             captcha_text = captcha_symbols[i]
