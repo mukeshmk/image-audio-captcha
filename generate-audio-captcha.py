@@ -4,7 +4,7 @@ import random
 import argparse
 from gtts import gTTS
 
-file_format = '.mp3'
+file_format = '.wav'
 
 
 def scramble_captcha_name(captcha_name):
@@ -70,11 +70,16 @@ def main():
         captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + file_format)
         if os.path.exists(captcha_file_name):
             version = 1
-            while os.path.exists(os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + file_format)):
+            while os.path.exists(
+                    os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + file_format)):
                 version += 1
             captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + file_format)
 
         tts = gTTS(captcha_text, 'en')
+        if args.audio_dict and not os.path.exists(args.output_dir + '\\' + captcha_name_scrambled):
+            os.makedirs(os.path.join(args.output_dir, captcha_name_scrambled))
+            captcha_file_name = os.path.join(args.output_dir + '\\' + captcha_name_scrambled,
+                                             captcha_name_scrambled + file_format)
         tts.save(captcha_file_name)
 
 

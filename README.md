@@ -3,7 +3,7 @@ generating and solving 8 character image captchas
 
 ## Generating Audio Set
 ```
->python generate-audio-captcha.py  --audio-dict True --symbols symbols.txt --output-dir audio-symbols
+python generate-audio-captcha.py  --audio-dict True --symbols symbols.txt --output-dir audio-symbols
 ```
 
 This generates audio file for each character / digit in the symbol set provided and outputs it into 
@@ -12,7 +12,7 @@ the target output directory.
 ## Generating captchas
 
 ```
-./generate-audio-captcha.py --length 8 --symbols symbols.txt --count 3200 --scramble --output-dir test
+python generate-audio-captcha.py --length 8 --symbols symbols.txt --count 3200 --scramble --output-dir test
 ```
 
 This generates 3200 audio captchas with 8 characters per captcha, using the
