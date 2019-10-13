@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from pydub.silence import split_on_silence
 from sklearn.model_selection import train_test_split
 
-FILE_FORMAT = '.mp3'
+FILE_FORMAT = '.wav'
 PWD = os.getcwd()
-DATA_PATH = PWD + '\\test\\'
+DATA_PATH = PWD + '\\train_data\\'
 NPY_PATH = PWD + '\\npy\\'
 IMG_PATH = DATA_PATH + 'img\\'
 
@@ -83,25 +83,30 @@ def get_train_test(split_ratio=0.6, random_state=42):
     return train_test_split(X, y, test_size=(1 - split_ratio), random_state=random_state, shuffle=True)
 
 
-def convert_audio_to_spectrogram():
-    mp3_audio_path = DATA_PATH + '2I1UP8QY' + FILE_FORMAT
-    sound = AudioSegment.from_mp3(mp3_audio_path)
-    sound_samples = sound.get_array_of_samples()  # Extract signal samples
-    samp_freq = sound.frame_rate
+def convert_audio_to_spectrogram(path=DATA_PATH, img_path=IMG_PATH, file_format=FILE_FORMAT):
+    file_names = os.listdir(path)
+    for file in file_names:
+        mp3_audio_path = path + file
+        sound = AudioSegment.from_mp3(mp3_audio_path)
+        sound_samples = sound.get_array_of_samples()
+        samp_freq = sound.frame_rate
 
-    speech_samples_norm = np.array(sound_samples)  # / np.max(np.array(sound_samples))
+        speech_samples_norm = np.array(sound_samples)
 
-    start_samp = 0
-    end_samp = len(speech_samples_norm)
-    win_len = int(samp_freq * .01)  # Window size of 30 ms
-    x = librosa.stft(np.array(speech_samples_norm[start_samp:end_samp]), win_length=win_len)
-    xdb = librosa.amplitude_to_db(abs(x))
-    fg2 = plt.figure(figsize=(5.12, 2.56), dpi=100)
-    librosa.display.specshow(xdb, sr=samp_freq, x_axis='time', y_axis='hz', hop_length=win_len / 4)
-    plt.axis('off')
-    image_path = os.path.join(DATA_PATH, '2I1UP8QY' + '.jpg')
-    fg2.savefig(image_path, dpi=100)
-    plt.close(fg2)
+        start_samp = 0
+        end_samp = len(speech_samples_norm)
+        win_len = int(samp_freq * .01)
+        x = librosa.stft(np.array(speech_samples_norm[start_samp:end_samp] / 1.0), win_length=win_len)
+        xdb = librosa.amplitude_to_db(abs(x))
+        fg2 = plt.figure(figsize=(5.12, 2.56), dpi=100)
+        librosa.display.specshow(xdb, sr=samp_freq, x_axis='time', y_axis='hz', hop_length=win_len / 4)
+        plt.axis('off')
+        if not os.path.exists(img_path):
+            print("Creating image directory " + img_path)
+            os.makedirs(img_path)
+        image_path = os.path.join(img_path, file.strip(file_format) + '.jpg')
+        fg2.savefig(image_path, dpi=100)
+        plt.close(fg2)
 
 
 def split_audio_silence():
@@ -115,6 +120,7 @@ def split_audio_silence():
         i.export(str(c) + '.wav')
         c += 1
 
+
 '''
 save_data_to_array(DATA_PATH)
 
@@ -127,4 +133,4 @@ channels = 1
 X_train = X_train.reshape(X_train.shape[0], buckets, max_len, channels)
 X_test = X_test.reshape(X_test.shape[0], buckets, max_len, channels)
 '''
-split_on_silence()
+convert_audio_to_spectrogram()
