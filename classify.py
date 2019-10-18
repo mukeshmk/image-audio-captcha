@@ -41,6 +41,11 @@ def main():
         print("Please specify the captcha symbols file")
         exit(1)
 
+    if args.is_audio is False:
+        print("Classifying data for Image Captcha")
+    else:
+        print("Classifying data for Audio Captcha")
+
     symbols_file = open(args.symbols, 'r')
     captcha_symbols = symbols_file.readline().strip()
     symbols_file.close()
@@ -85,7 +90,7 @@ def main():
                 (c, h, w) = image.shape
                 image = image.reshape([-1, c, h, w])
                 prediction = model.predict(image)
-                output_file.write(x + ", " + decode(captcha_symbols, prediction) + "\n")
+                output_file.write(x + "," + decode(captcha_symbols, prediction) + "\n")
 
 
 if __name__ == '__main__':

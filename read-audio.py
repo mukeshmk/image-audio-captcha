@@ -17,7 +17,7 @@ def convert_audio_image(pwd, input_dir, output_dir):
     for file in file_names:
         mp3_audio_path = pwd + '\\' + input_dir + '\\' + file
         sound = AudioSegment.from_mp3(mp3_audio_path)
-        wav_audio_path = pwd + '/wavAudio/' + file.strip('.mp3') + '.wav'
+        wav_audio_path = pwd + '/tempDir/' + file.strip('.mp3') + '.wav'
         sound.export(wav_audio_path, format="wav")
 
         plt.interactive(False)
@@ -68,13 +68,13 @@ def main():
         os.makedirs(args.output_dir)
 
     tempDir = 'tempDir'
-    if not os.path.exists(tempDir):
+    if not os.path.exists(args.input_dir + tempDir):
         print("Creating temp directory " + tempDir)
-        os.makedirs(tempDir)
+        os.makedirs(args.input_dir + tempDir)
     convert_audio_image(os.getcwd(), args.input_dir, args.output_dir)
-    if os.path.exists(tempDir):
+    if os.path.exists(args.input_dir + tempDir):
         print("Deleting temp directory " + tempDir)
-        os.rmdir(tempDir)
+        os.rmdir(args.input_dir + tempDir)
 
 
 if __name__ == '__main__':
