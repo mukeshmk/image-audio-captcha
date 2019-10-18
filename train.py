@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import cv2
-import numpy
+import numpy as np
 import random
 import argparse
 import tensorflow as tf
@@ -35,13 +35,14 @@ def create_model(captcha_length, captcha_num_symbols, input_shape, model_depth=5
 # In this case, we have a folder full of images
 # Elements of a Sequence are *batches* of images, of some size batch_size
 class ImageSequence(keras.utils.Sequence):
-    def __init__(self, directory_name, batch_size, captcha_length, captcha_symbols, captcha_width, captcha_height):
+    def __init__(self, directory_name, batch_size, captcha_length, captcha_symbols, captcha_width, captcha_height, is_audio):
         self.directory_name = directory_name
         self.batch_size = batch_size
         self.captcha_length = captcha_length
         self.captcha_symbols = captcha_symbols
         self.captcha_width = captcha_width
         self.captcha_height = captcha_height
+        self.is_audio = is_audio
 
         file_list = os.listdir(self.directory_name)
         self.files = dict(zip(map(lambda x: x.split('.')[0], file_list), file_list))
@@ -49,11 +50,11 @@ class ImageSequence(keras.utils.Sequence):
         self.count = len(file_list)
 
     def __len__(self):
-        return int(numpy.floor(self.count / self.batch_size))
+        return int(np.floor(self.count / self.batch_size))
 
     def __getitem__(self, idx):
-        X = numpy.zeros((self.batch_size, self.captcha_height, self.captcha_width, 3), dtype=numpy.float32)
-        y = [numpy.zeros((self.batch_size, len(self.captcha_symbols)), dtype=numpy.uint8)
+        X = np.zeros((self.batch_size, self.captcha_height, self.captcha_width, 3), dtype=np.float32)
+        y = [np.zeros((self.batch_size, len(self.captcha_symbols)), dtype=np.uint8)
              for i in range(self.captcha_length)]
 
         for i in range(self.batch_size):
@@ -65,10 +66,28 @@ class ImageSequence(keras.utils.Sequence):
 
             # We have to scale the input pixel values to the range [0, 1] for
             # Keras so we divide by 255 since the image is 8-bit RGB
-            raw_data = cv2.imread(os.path.join(self.directory_name, random_image_file))
-            rgb_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2RGB)
 
-            processed_data = numpy.array(rgb_data) / 255.0
+            raw_data = cv2.imread(os.path.join(self.directory_name, random_image_file))
+            rgb_data = None
+            if not self.is_audio:
+                # gray scaling the image
+                gray_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2GRAY)
+                # applying adaptive threshold
+                adaptive = cv2.adaptiveThreshold(gray_data, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+
+                kernel = np.ones((1, 1), np.uint8)
+                # dilating the image
+                dilation = cv2.dilate(adaptive, kernel, iterations=1)
+                # applying erode
+                erosion = cv2.erode(dilation, kernel, iterations=1)
+                kernel = np.ones((4, 1), np.uint8)
+                dilation = cv2.dilate(erosion, kernel, iterations=1)
+                # converting back to RGB format to maintain consistence of image shape
+                rgb_data = cv2.cvtColor(dilation, cv2.COLOR_GRAY2RGB)
+            else:
+                rgb_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2RGB)
+
+            processed_data = np.array(rgb_data) / 255.0
             X[i] = processed_data
 
             # We have a little hack here - we save captchas as TEXT_num.png if there is more than one captcha with
@@ -95,6 +114,7 @@ def main():
     parser.add_argument('--input-model', help='Where to look for the input model to continue training', type=str)
     parser.add_argument('--epochs', help='How many training epochs to run', type=int)
     parser.add_argument('--symbols', help='File with the symbols to use in captchas', type=str)
+    parser.add_argument('--is-audio', help='trains model for audio captcha', type=bool, default=True)
     args = parser.parse_args()
 
     if args.width is None:
@@ -133,6 +153,11 @@ def main():
         print("Please specify the captcha symbols file")
         exit(1)
 
+    if args.is_audio is False:
+        print("Training model for Image Captcha")
+    else:
+        print("Training model for Audio Captcha")
+
     captcha_symbols = None
     with open(args.symbols) as symbols_file:
         captcha_symbols = symbols_file.readline()
@@ -150,9 +175,9 @@ def main():
         model.summary()
 
         training_data = ImageSequence(args.train_dataset, args.batch_size, args.length, captcha_symbols, args.width,
-                                      args.height)
+                                      args.height, args.is_audio)
         validation_data = ImageSequence(args.validate_dataset, args.batch_size, args.length, captcha_symbols,
-                                        args.width, args.height)
+                                        args.width, args.height, args.is_audio)
 
         callbacks = [keras.callbacks.EarlyStopping(patience=3),
                      keras.callbacks.ModelCheckpoint(args.output_model_name + '.h5', save_best_only=False)]

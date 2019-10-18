@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import cv2
-import numpy
+import numpy as np
 import argparse
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def decode(characters, y):
-    y = numpy.argmax(numpy.array(y), axis=2)[:, 0]
+    y = np.argmax(np.array(y), axis=2)[:, 0]
     return ''.join([characters[x] for x in y])
 
 
@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--captcha-dir', help='Where to read the captchas to break', type=str)
     parser.add_argument('--output', help='File where the classifications should be saved', type=str)
     parser.add_argument('--symbols', help='File with the symbols to use in captchas', type=str)
+    parser.add_argument('--is-audio', help='is audio boolean', type=bool, default=True)
     args = parser.parse_args()
 
     if args.model_name is None:
@@ -60,9 +61,27 @@ def main():
             for x in os.listdir(args.captcha_dir):
                 # load image and preprocess it
                 raw_data = cv2.imread(os.path.join(args.captcha_dir, x))
-                rgb_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2RGB)
+                rgb_data = None
+                if not args.is_audio:
+                    # gray scaling the image
+                    gray_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2GRAY)
+                    # applying adaptive threshold
+                    adaptive = cv2.adaptiveThreshold(gray_data, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11,
+                                                     2)
 
-                image = numpy.array(rgb_data) / 255.0
+                    kernel = np.ones((1, 1), np.uint8)
+                    # dilating the image
+                    dilation = cv2.dilate(adaptive, kernel, iterations=1)
+                    # applying erode
+                    erosion = cv2.erode(dilation, kernel, iterations=1)
+                    kernel = np.ones((4, 1), np.uint8)
+                    dilation = cv2.dilate(erosion, kernel, iterations=1)
+                    # converting back to RGB format to maintain consistence of image shape
+                    rgb_data = cv2.cvtColor(dilation, cv2.COLOR_GRAY2RGB)
+                else:
+                    rgb_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2RGB)
+
+                image = np.array(rgb_data) / 255.0
                 (c, h, w) = image.shape
                 image = image.reshape([-1, c, h, w])
                 prediction = model.predict(image)
