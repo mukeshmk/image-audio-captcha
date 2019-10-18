@@ -1,8 +1,6 @@
 import os
 import matplotlib.pyplot as plt
-import librosa
 import librosa.display
-import IPython.display as ipd
 
 audio_fpath = "D:\\code\\github-clones\\image-audio-captcha\\t\\"
 audio_clips = os.listdir(audio_fpath)

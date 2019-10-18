@@ -2,3 +2,7 @@
 .idea
 train_data
 audio-symbols
+test_data
+training_data
+validation_data
+captcha-data
