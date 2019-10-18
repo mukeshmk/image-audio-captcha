@@ -1,7 +1,9 @@
 import os
+# import tflearn
 import librosa
 import librosa.display
 import numpy as np
+# from matplotlib.ticker import NullLocator
 from tqdm import tqdm
 from pydub import AudioSegment
 import matplotlib.pyplot as plt
@@ -10,9 +12,9 @@ from sklearn.model_selection import train_test_split
 
 FILE_FORMAT = '.wav'
 PWD = os.getcwd()
-DATA_PATH = PWD + '\\train_data\\'
+DATA_PATH = PWD + '\\t\\'
 NPY_PATH = PWD + '\\npy\\'
-IMG_PATH = DATA_PATH + 'img\\'
+IMG_PATH = PWD + '\\i\\'
 
 
 def to_categorical(y, num_classes=None, dtype='float32'):
@@ -98,19 +100,25 @@ def convert_audio_to_spectrogram(path=DATA_PATH, img_path=IMG_PATH, file_format=
         win_len = int(samp_freq * .01)
         x = librosa.stft(np.array(speech_samples_norm[start_samp:end_samp] / 1.0), win_length=win_len)
         xdb = librosa.amplitude_to_db(abs(x))
-        fg2 = plt.figure(figsize=(5.12, 2.56), dpi=100)
+        # plt.gca().set_axis_off()
+        # plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+        #                    hspace=0, wspace=0)
+        # plt.margins(0, 0)
+        # plt.gca().xaxis.set_major_locator(NullLocator())
+        # plt.gca().yaxis.set_major_locator(NullLocator())
+        fg2 = plt.figure(figsize=(1.66, 0.84), dpi=100)
         librosa.display.specshow(xdb, sr=samp_freq, x_axis='time', y_axis='hz', hop_length=win_len / 4)
         plt.axis('off')
         if not os.path.exists(img_path):
             print("Creating image directory " + img_path)
             os.makedirs(img_path)
         image_path = os.path.join(img_path, file.strip(file_format) + '.jpg')
-        fg2.savefig(image_path, dpi=100)
+        fg2.savefig(image_path, dpi=100, bbox_inches='tight', pad_inches=0)
         plt.close(fg2)
 
 
 def split_audio_silence():
-    sound = AudioSegment.from_mp3(PWD + '\\00C643SS.wav')
+    sound = AudioSegment.from_mp3(DATA_PATH + '00APKWD4' + FILE_FORMAT)
     print(len(sound))
     print(sound.dBFS)
     clips = split_on_silence(sound, min_silence_len=15, silence_thresh=-23)
@@ -130,7 +138,36 @@ max_len = 11
 buckets = 20
 channels = 1
 
+learning_rate = 0.0001
+training_iters = 300000  # steps
+batch_size = 64
+width = 20  # mfcc features
+height = 80  # (max) length of utterance
+classes = 10  # digits
+
 X_train = X_train.reshape(X_train.shape[0], buckets, max_len, channels)
 X_test = X_test.reshape(X_test.shape[0], buckets, max_len, channels)
+testX, testY = X_train, y_test
+
+net = tflearn.input_data([None, width, height])
+# net = tflearn.embedding(net, input_dim=10000, output_dim=128)
+net = tflearn.lstm(net, 128, dropout=0.8)
+net = tflearn.fully_connected(net, classes, activation='softmax')
+net = tflearn.regression(net, optimizer='adam', learning_rate=learning_rate, loss='categorical_crossentropy')
+# Training
+model = tflearn.DNN(net, tensorboard_verbose=0)
+# check model exists or not
+if os.path.isfile("tflearn.lstm.model"):
+    print("loading model tflearn.lstm.model")
+    model.load("tflearn.lstm.model")
+
+while 1:  # training_iters
+    model.fit(X_train, y_train, n_epoch=100, validation_set=(testX, testY), show_metric=True,
+              batch_size=batch_size)
+    _y = model.predict(X_test)
+
+model.save("tflearn.lstm.model")
+
+convert_audio_to_spectrogram()
 '''
 convert_audio_to_spectrogram()

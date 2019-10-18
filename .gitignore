@@ -1,2 +1,4 @@
 # ignoring .idea folder
 .idea
+train_data
+audio-symbols
