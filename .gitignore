@@ -1,8 +1,7 @@
 # ignoring .idea folder
 .idea
-train_data
 audio-symbols
-test_data
-training_data
-validation_data
+testing-data
+training-data
+validation-data
 captcha-data

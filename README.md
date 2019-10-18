@@ -6,23 +6,23 @@ Required dependencies: python-captcha, opencv, python-tensorflow (CPU or GPU)
 ## Generating captchas
 
 ```
-python generate.py --width 128 --height 64 --length 8 --symbols symbols.txt --count 3200 --scramble --output-dir train_data
+python generate-audio-captcha.py --length 8 --symbols symbols.txt --count 3200 --output-dir training-images
 ```
 
-This generates 3200 128x64 pixel captchas with 4 symbols per captcha, using the
-set of symbols in the `symbols.txt` file. The captchas are stored in the folder
-`test`, which is created if it doesn't exist. The names of the captcha images
-are scrambled.
+This generates 3200 audio captchas with 8 characters per captcha, using the
+set of symbols in the `symbols.txt` file with the help of gTTS service. The captchas are stored in the folder
+`training-images`, which is created if it doesn't exist. The names of the captcha images
+are scrambled if passed the option.
 
 Without the `--scramble` option, the name of the image is the captcha text.
 
 To train and validate a neural network, we need two sets of data: a big
 training set, and a smaller validation set. The network is trained on the
 training set, and tested on the validation set, so it is very important that
-there are no images that are in both sets.
+there are no audio that are in both sets.
 
 To generate the training data, the "ground truth" classification for each
-training example image must be known. This means that for training, the names
+training example audio must be known. This means that for training, the names
 of the captchas *cannot* be scrambled, because otherwise the training process
 has no way to check if the answer from the CNN for some captcha is right or
 wrong! Make sure not to use the `--scramble` option when generating the
