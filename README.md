@@ -78,3 +78,6 @@ up.
 The classifier runs all the images in `--captcha-dir` through the model, and
 saves the file names and the model's guess at captcha contained in the image in
 the `--output` file.
+
+## Credits:
+Base code taken and modified from: https://gitlab.com/andrewwja/captcha-demo
