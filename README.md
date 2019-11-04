@@ -11,7 +11,7 @@ Manasi Mohan Narsapur - 19308029
 Aishwarya Ravindran - 19302263
 
 
-### Akash and Mansi - Image Captcha
+### Akash and Manasi - Image Captcha
 
 	For image captcha Adaptive threshold was used to improve accuracy on grayscale image.
 	Applied techniques likes Canny Edge Detection, Simple Threshold and Generic Transformation for images.
