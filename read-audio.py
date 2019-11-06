@@ -7,10 +7,16 @@ import matplotlib.pyplot as plt
 import matplotlib
 import librosa
 import librosa.display
-from pydub import AudioSegment
+import scipy.signal as sg
 from multiprocessing import Pool
 
 matplotlib.rcParams['figure.figsize'] = [15, 10]
+
+
+def lowpass(signal, cutoff, n=5, sample_freq=44100):
+    window = cutoff / (sample_freq / 2)
+    b, a = sg.butter(n, window, btype='low', analog=False, output='ba')
+    return sg.filtfilt(b, a, signal)
 
 
 def convert_single_audio_to_image(pwd, input_dir, output_dir, file):
@@ -20,7 +26,8 @@ def convert_single_audio_to_image(pwd, input_dir, output_dir, file):
         # load and process audio
         audio, sr = librosa.load(mp3_audio_path)
         # audio = lowpass(audio, cutoff=3000, sample_freq=sr)
-        spec = librosa.stft(np.asfortranarray(audio))
+        # spec = librosa.stft(np.asfortranarray(audio))
+        spec = librosa.feature.melspectrogram(audio, sr)
         spec_db = librosa.amplitude_to_db(np.abs(spec))
 
         # generate plot of size 128x64
