@@ -13,7 +13,11 @@ from pydub import AudioSegment
 file_format = '.wav'
 
 # This are the dir name from where audio files will be picked up
-tts_list = ['pyttsx', 'gtts', 'watson', 'microsoft']
+file_names = os.listdir(os.getcwd() + '\\symbols\\')
+tts_list = []
+for file in file_names:
+    tts_list.append(file)
+
 tempDir = 'multiTTS_data'
 
 def create_audio_and_convert(output_dir, captcha_text):
@@ -117,6 +121,7 @@ def main():
             captcha_file_name = os.path.join(args.output_dir, captcha_name_scrambled + '_' + str(version) + file_format)
         process_args.append((args.output_dir, captcha_name_scrambled))
 
+    print('Generating Melspectrogram for Audio Captcha')
     with Pool(args.n) as p:
         p.starmap(create_audio_and_convert, process_args)
 
