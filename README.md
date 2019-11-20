@@ -1,27 +1,6 @@
 # CNN Based Audio and Image Captcha Breaker Project
 
-## Members: 
-
-Mukesh Arambakam - 19301497
-
-Akash Verma - 19308805
-
-Manasi Mohan Narsapur - 19308029
-
-Aishwarya Ravindran - 19302263
-
-
-### Akash and Manasi - Image Captcha
-
-	For image captcha Adaptive threshold was used to improve accuracy on grayscale image.
-	Applied techniques likes Canny Edge Detection, Simple Threshold and Generic Transformation for images.
-	Trained models with different variations of epochs, batchsizes and drop-outs.
-	
-### Mukesh and Aishwarya - Audio Captcha
-
-	Generated multiple audio files and converted them to images using mel spectrogram.
-	Experimented with different MFCC and types of Recursive Neural Networks like LSTM's.
-	Trained models with different variations of epochs, batchsizes and drop-outs.
+## TODO - to update the readme.md file!
 
 ## Requirements
 

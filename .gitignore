@@ -1,6 +1,7 @@
 # ignoring .idea folder
 .idea
 audio-symbols
+data
 testing-data
 training-data
 validation-data
